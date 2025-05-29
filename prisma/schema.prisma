@@ -43,6 +43,7 @@ model Task {
   
   aiSuggested Boolean   @default(false)
   aiApproved  Boolean?
+  routines    Routine[]
 }
 
 model Goal {
@@ -75,6 +76,7 @@ model Habit {
   
   aiSuggested Boolean   @default(false)
   aiApproved  Boolean?
+  routines    Routine[]
 }
 
 model Routine {
@@ -91,6 +93,8 @@ model Routine {
   
   aiSuggested Boolean   @default(false)
   aiApproved  Boolean?
+  habits      Habit[]
+  tasks       Task[]
 }
 
 model Journal {
