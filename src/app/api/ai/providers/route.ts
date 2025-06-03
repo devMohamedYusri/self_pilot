@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { AIManager } from '@/lib/ai/manager'
+import { AIManager } from '@/app/lib/ai/manager'
 
 export async function GET() {
   const manager = new AIManager()

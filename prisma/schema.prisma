@@ -18,7 +18,6 @@ model User {
   tasks         Task[]
   goals         Goal[]
   habits        Habit[]
-  routines      Routine[]
   journals      Journal[]
   aiLogs        AILog[]
   
@@ -43,7 +42,6 @@ model Task {
   
   aiSuggested Boolean   @default(false)
   aiApproved  Boolean?
-  routines    Routine[]
 }
 
 model Goal {
@@ -76,25 +74,6 @@ model Habit {
   
   aiSuggested Boolean   @default(false)
   aiApproved  Boolean?
-  routines    Routine[]
-}
-
-model Routine {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  timeOfDay   String    // morning, afternoon, evening
-  active      Boolean   @default(true)
-  steps       Json      // Array of steps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  aiSuggested Boolean   @default(false)
-  aiApproved  Boolean?
-  habits      Habit[]
-  tasks       Task[]
 }
 
 model Journal {

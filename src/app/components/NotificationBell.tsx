@@ -19,7 +19,7 @@ export function NotificationBell() {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-          <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg border z-20">
+          <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border z-20">
             <div className="p-4">
               <h3 className="text-sm font-medium">Notifications</h3>
               <div className="mt-2 text-sm text-gray-500">

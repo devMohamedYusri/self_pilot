@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { io, Socket } from 'socket.io-client'
 import { useSession } from 'next-auth/react'
 import { useToast } from '@chakra-ui/react'
-import { aiNotificationManager } from '@/lib/notifications/AINotificationManager'
+import { aiNotificationManager } from '@/app/lib/notifications/AINotificationManager'
 
 interface SocketContextType {
   socket: Socket | null

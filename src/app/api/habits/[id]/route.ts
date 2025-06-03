@@ -1,4 +1,4 @@
-import { createCrudHandlers } from '@/lib/crudHandler'
+import { createCrudHandlers } from '@/app/lib/crudHandler'
 
 const handlers = createCrudHandlers({ model: 'habit' })
 

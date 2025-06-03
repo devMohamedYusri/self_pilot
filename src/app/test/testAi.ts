@@ -1,5 +1,5 @@
-import { AIManager } from '@/lib/ai/manager'
-import { AI_FUNCTIONS, SYSTEM_PROMPT } from '@/lib/ai/functions'
+import { AIManager } from '@/app/lib/ai/manager'
+import { AI_FUNCTIONS, SYSTEM_PROMPT } from '@/app/lib/ai/functions'
 
 async function testAI() {
   console.log('🤖 Testing AI Manager...\n')

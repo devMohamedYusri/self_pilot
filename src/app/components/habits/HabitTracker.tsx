@@ -42,12 +42,13 @@ export function HabitTracker({ habits, onEdit, onDelete, onComplete }: HabitTrac
             borderRadius="md"
             borderWidth={1}
             borderColor={habit.aiSuggested && !habit.aiApproved ? 'orange.300' : 'gray.200'}
+
           >
             <VStack align="stretch" spacing={3}>
               <HStack justify="space-between">
                 <VStack align="start" flex={1}>
                   <HStack>
-                    <Text fontWeight="bold">{habit.title}</Text>
+                    <Text fontWeight="bold" color="#666">{habit.title}</Text>
                     {habit.aiSuggested && !habit.aiApproved && (
                       <Badge colorScheme="orange" size="sm">AI Suggested</Badge>
                     )}

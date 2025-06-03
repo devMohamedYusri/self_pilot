@@ -2,7 +2,7 @@ import { AIProvider, ChatMessage, ChatOptions, ChatResponse } from './providers/
 import { OpenAIProvider } from './providers/openai'
 import { GeminiProvider } from './providers/gemini'
 import { HuggingFaceProvider } from './providers/huggingface'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/app/lib/prisma'
 
 export class AIManager {
   private providers: AIProvider[] = []

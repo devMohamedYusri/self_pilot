@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useAINotifications } from '@/app/components/notifications/AINotificationSystem'
-import { aiNotificationManager } from '@/lib/notifications/AINotificationManager'
+import { aiNotificationManager } from '@/app/lib/notifications/AINotificationManager'
 import { useRouter } from 'next/navigation'
 
 export function useAINotificationListener() {

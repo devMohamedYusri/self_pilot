@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { AIManager } from '@/lib/ai/manager'
-import { SYSTEM_PROMPT } from '@/lib/ai/functions'
+import { authOptions } from '@/app/lib/auth'
+import { prisma } from '@/app/lib/prisma'
+import { AIManager } from '@/app/lib/ai/manager'
+import { SYSTEM_PROMPT } from '@/app/lib/ai/functions'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)

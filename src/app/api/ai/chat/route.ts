@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { AIManager } from '@/lib/ai/manager'
-import { AI_FUNCTIONS, SYSTEM_PROMPT } from '@/lib/ai/functions'
-import { prisma } from '@/lib/prisma'
+import { authOptions } from '@/app/lib/auth'
+import { AIManager } from '@/app/lib/ai/manager'
+import { AI_FUNCTIONS, SYSTEM_PROMPT } from '@/app/lib/ai/functions'
+import { prisma } from '@/app/lib/prisma'
 
 type FunctionExecutionResult = {
   name: string;

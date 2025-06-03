@@ -74,62 +74,139 @@ export function GoalForm({ isOpen, onClose, onSubmit, initialData }: GoalFormPro
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <form onSubmit={handleSubmit}>
-          <ModalHeader>{initialData ? 'Edit Goal' : 'New Goal'}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack spacing={4}>
-              <FormControl isRequired>
-                <FormLabel>Title</FormLabel>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Target Date</FormLabel>
-                <Input
-                  type="date"
-                  value={formData.targetDate}
-                  onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel>Progress: {formData.progress}%</FormLabel>
-                <Slider
-                  value={formData.progress}
-                  onChange={(value) => setFormData({ ...formData, progress: value })}
-                  min={0}
-                  max={100}
-                >
-                  <SliderTrack>
-                    <SliderFilledTrack />
-                  </SliderTrack>
-                  <SliderThumb />
-                </Slider>
-              </FormControl>
-            </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" colorScheme="brand" isLoading={isLoading}>
-              {initialData ? 'Update' : 'Create'}
-            </Button>
-          </ModalFooter>
-        </form>
-      </ModalContent>
-    </Modal>
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+  <ModalOverlay bg="rgba(0, 0, 0, 0.5)" />
+  <ModalContent 
+    bg="#F7F7F7" 
+    borderRadius="lg" 
+    boxShadow="0px 0px 10px rgba(0, 0, 0, 0.1)"
+  >
+    <form onSubmit={handleSubmit}>
+      <ModalHeader 
+        fontSize="2xl" 
+        fontWeight="bold" 
+        color="#2C3E50"
+      >
+        {initialData ? 'Edit Goal' : 'New Goal'}
+      </ModalHeader>
+      <ModalCloseButton 
+        top={4} 
+        right={4} 
+        bg="#E0E0E0" 
+        _hover={{ bg: "#C0C0C0" }} 
+      />
+      <ModalBody px={8} py={4}>
+        <VStack spacing={6}>
+          <FormControl isRequired>
+            <FormLabel 
+              fontSize="lg" 
+              fontWeight="medium" 
+              color="#4F4F4F"
+            >
+              Title
+            </FormLabel>
+            <Input 
+              value={formData.title} 
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+              bg="#FFFFFF" 
+              borderColor="#D0D0D0" 
+              _focus={{ borderColor: "#66CCCC" }} 
+              py={2} 
+              px={4} 
+              fontSize="lg"
+              color='#666'
+
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel 
+              fontSize="lg" 
+              fontWeight="medium" 
+              color="#4F4F4F"
+            >
+              Description
+            </FormLabel>
+            <Textarea 
+              value={formData.description} 
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+              bg="#FFFFFF" 
+              borderColor="#D0D0D0" 
+              _focus={{ borderColor: "#66CCCC" }} 
+              py={2} 
+              px={4} 
+              fontSize="lg"
+              color='#666'
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel 
+              fontSize="lg" 
+              fontWeight="medium" 
+              color="#4F4F4F"
+            >
+              Target Date
+            </FormLabel>
+            <Input 
+              type="date" 
+              value={formData.targetDate} 
+              onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })} 
+              bg="#FFFFFF" 
+              borderColor="#D0D0D0" 
+              _focus={{ borderColor: "#66CCCC" }} 
+              py={2} 
+              px={4} 
+              fontSize="lg"
+              color='#666'
+
+            />
+          </FormControl>
+          <FormControl>
+            <FormLabel 
+              fontSize="lg" 
+              fontWeight="medium" 
+              color="#4F4F4F"
+            >
+              Progress: {formData.progress}%
+            </FormLabel>
+            <Slider 
+              value={formData.progress} 
+              onChange={(value) => setFormData({ ...formData, progress: value })} 
+              min={0} 
+              max={100} 
+              colorScheme="teal"
+            >
+              <SliderTrack bg="#D0D0D0" height={2} />
+              <SliderFilledTrack bg="#66CCCC" />
+              <SliderThumb bg="#66CCCC" />
+            </Slider>
+          </FormControl>
+        </VStack>
+      </ModalBody>
+      <ModalFooter 
+        bg="#F0F0F0" 
+        px={8} 
+        py={4} 
+        borderTop="1px solid #D0D0D0"
+      >
+        <Button 
+          variant="outline" 
+          mr={3} 
+          onClick={onClose} 
+          borderColor="#C0C0C0" 
+          _hover={{ bg: "#E0E0E0" }}
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          colorScheme="teal" 
+          isLoading={isLoading}
+        >
+          {initialData ? 'Update' : 'Create'}
+        </Button>
+      </ModalFooter>
+    </form>
+  </ModalContent>
+</Modal>
   )
 }
