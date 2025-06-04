@@ -10,25 +10,23 @@ import {
   Avatar,
   Progress,
   useToast,
-  Flex,
   IconButton,
 } from '@chakra-ui/react'
 import { useState, useRef, useEffect } from 'react'
 import { FiSend, FiCpu } from 'react-icons/fi'
 import { useRouter } from 'next/navigation'
-
-interface OnboardingStep {
-  id: string
-  question: string
-  type: 'text' | 'choice' | 'multiChoice'
-  options?: string[]
-  key: string
-}
+import type { 
+  OnboardingStep, 
+  OnboardingMessage, 
+  OnboardingResponses, 
+  OnboardingResponse,
+  OnboardingApiResponse 
+} from '@/app/types'
 
 const onboardingSteps: OnboardingStep[] = [
   {
     id: '1',
-    question: "Hi! I'm your AI assistant. What should I call you?",
+    question: "Hi! I&apos;m your AI assistant. What should I call you?",
     type: 'text',
     key: 'name'
   },
@@ -41,7 +39,7 @@ const onboardingSteps: OnboardingStep[] = [
   },
   {
     id: '3',
-    question: "What's your biggest challenge right now?",
+    question: "What&apos;s your biggest challenge right now?",
     type: 'text',
     key: 'challenge'
   },
@@ -63,8 +61,8 @@ const onboardingSteps: OnboardingStep[] = [
 
 export function OnboardingChat() {
   const [currentStep, setCurrentStep] = useState(0)
-  const [responses, setResponses] = useState<Record<string, any>>({})
-  const [messages, setMessages] = useState<Array<{role: 'ai' | 'user', content: string}>>([])
+  const [responses, setResponses] = useState<OnboardingResponses>({})
+  const [messages, setMessages] = useState<OnboardingMessage[]>([])
   const [input, setInput] = useState('')
   const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
@@ -90,15 +88,18 @@ export function OnboardingChat() {
 
   const handleResponse = async () => {
     const step = onboardingSteps[currentStep]
-    let response: any = input
+    let response: OnboardingResponse
 
-    if (step.type === 'choice') {
-      response = selectedOptions[0]
-    } else if (step.type === 'multiChoice') {
+    if (step.type === 'text') {
+      response = input
+    } else if (step.type === 'choice') {
+      response = selectedOptions[0] || ''
+    } else {
       response = selectedOptions
     }
 
-    if (!response || (Array.isArray(response) && response.length === 0)) {
+    // Validate response
+    if (!response || (Array.isArray(response) && response.length === 0) || (typeof response === 'string' && !response.trim())) {
       toast({
         title: 'Please provide an answer',
         status: 'warning',
@@ -138,7 +139,7 @@ export function OnboardingChat() {
     setIsProcessing(true)
     setMessages(prev => [...prev, {
       role: 'ai',
-      content: "Perfect! I'm setting up your personalized workspace..."
+      content: "Perfect! I&apos;m setting up your personalized workspace..."
     }])
 
     try {
@@ -150,29 +151,33 @@ export function OnboardingChat() {
       })
 
       if (res.ok) {
-        const data = await res.json()
+        const data: OnboardingApiResponse = await res.json()
         
         setTimeout(() => {
           setMessages(prev => [...prev, {
             role: 'ai',
-            content: `All set! I've created ${data.tasksCreated} initial tasks and ${data.goalsCreated} goals based on your responses. Let's get started!`
+            content: `All set! I&apos;ve created ${data.tasksCreated} initial tasks and ${data.goalsCreated} goals based on your responses. Let&apos;s get started!`
           }])
         }, 1000)
 
         setTimeout(() => {
           router.push('/dashboard')
         }, 3000)
+      } else {
+        throw new Error('Failed to complete onboarding')
       }
     } catch (error) {
+      console.error("failed to complete onboarding error ",error)
       toast({
         title: 'Error',
-        description: 'Failed to complete onboarding',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
         status: 'error',
       })
     } finally {
       setIsProcessing(false)
     }
   }
+
   const handleOptionToggle = (option: string) => {
     const step = onboardingSteps[currentStep]
     if (step.type === 'choice') {
@@ -214,7 +219,7 @@ export function OnboardingChat() {
               borderRadius="lg"
               bg={message.role === 'user' ? 'blue.100' : 'gray.100'}
             >
-                            <Text>{message.content}</Text>
+              <Text>{message.content}</Text>
             </Box>
           </HStack>
         ))}
@@ -234,7 +239,7 @@ export function OnboardingChat() {
       <Box p={4} borderTop="1px" borderColor="gray.200">
         {currentStepData && (currentStepData.type === 'choice' || currentStepData.type === 'multiChoice') ? (
           <VStack spacing={2}>
-            {currentStepData.options?.map((option) => (
+            {currentStepData.options?.map((option: string) => (
               <Button
                 key={option}
                 onClick={() => handleOptionToggle(option)}

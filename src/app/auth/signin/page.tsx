@@ -55,10 +55,11 @@ export default function SignIn() {
         router.push('/dashboard')
         router.refresh()
       }
-    } catch (error) {
+    } catch (error) { // Fixed: Now using the error variable
+      console.error('Login error:', error) // Fixed: Added error logging
       toast({
         title: 'Error',
-        description: 'An unexpected error occurred',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -115,7 +116,7 @@ export default function SignIn() {
         </form>
 
         <Text>
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/auth/signup">
             <ChakraLink color="brand.500">Sign up</ChakraLink>
           </Link>

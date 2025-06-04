@@ -21,12 +21,12 @@ import {
   TagCloseButton,
 } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
-
+import type { JournalFormData } from '@/app/types'
 interface JournalFormProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: any) => Promise<void>
-  initialData?: any
+  onSubmit: (data: JournalFormData) => Promise<void>
+  initialData?: JournalFormData
 }
 
 export function JournalForm({ isOpen, onClose, onSubmit, initialData }: JournalFormProps) {

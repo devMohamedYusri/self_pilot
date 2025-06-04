@@ -1,5 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { BaseAIProvider, ChatMessage, ChatOptions, ChatResponse } from './base'
+import { 
+  BaseAIProvider, 
+  ChatMessage, 
+  ChatOptions, 
+  ChatResponse, 
+  UsageInfo,
+  FunctionDefinition,
+  FunctionCall 
+} from './base'
 
 export class GeminiProvider extends BaseAIProvider {
   name = 'Google Gemini'
@@ -43,7 +51,7 @@ export class GeminiProvider extends BaseAIProvider {
 
     return {
       content: response.text(),
-      functions: functionCalls,
+      functions: functionCalls.length > 0 ? functionCalls : undefined,
       usage: {
         promptTokens: 0, // Gemini doesn't provide token counts
         completionTokens: 0,
@@ -52,20 +60,54 @@ export class GeminiProvider extends BaseAIProvider {
     }
   }
 
-  private extractFunctionCalls(text: string, functions?: any[]): any[] {
+  private extractFunctionCalls(text: string, functions?: FunctionDefinition[]): FunctionCall[] {
     // Simple function extraction from text
     // In production, you'd want more sophisticated parsing
-    const functionCalls: any[] = []
+    const functionCalls: FunctionCall[] = []
     
     if (functions) {
       functions.forEach(func => {
+        // Look for function calls in format: functionName(arg1, arg2)
         const regex = new RegExp(`${func.name}\\s*\$$([^)]*)\$$`, 'gi')
-        const matches = text.match(regex)
-        if (matches) {
-          functionCalls.push({
-            name: func.name,
-            arguments: {} // Would need proper parsing
-          })
+        const matches = text.matchAll(regex)
+        
+        for (const match of matches) {
+          try {
+            // Extract arguments string
+            const argsString = match[1].trim()
+            
+            // Simple argument parsing - in production use proper parser
+            const args: Record<string, unknown> = {}
+            
+            if (argsString) {
+              // Try to parse as JSON first
+              try {
+                const parsed = JSON.parse(`{${argsString}}`)
+                Object.assign(args, parsed)
+              } catch {
+                // Fallback to simple key=value parsing
+                const argPairs = argsString.split(',').map(s => s.trim())
+                argPairs.forEach(pair => {
+                  const [key, value] = pair.split('=').map(s => s.trim())
+                  if (key && value) {
+                    // Try to parse value as JSON, fallback to string
+                    try {
+                      args[key] = JSON.parse(value)
+                    } catch {
+                      args[key] = value.replace(/^["']|["']$/g, '') // Remove quotes
+                    }
+                  }
+                })
+              }
+            }
+            
+            functionCalls.push({
+              name: func.name,
+              arguments: args
+            })
+          } catch (error) {
+            console.error(`Failed to parse function call for ${func.name}:`, error)
+          }
         }
       })
     }
@@ -74,6 +116,7 @@ export class GeminiProvider extends BaseAIProvider {
   }
 
   async getUsage(): Promise<UsageInfo> {
+    // In a real implementation, you would track actual usage
     return {
       used: 0,
       limit: 60, // 60 requests per minute free tier

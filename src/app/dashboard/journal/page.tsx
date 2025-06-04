@@ -14,6 +14,7 @@ import { DashboardLayout } from '@/app/components/layout/DashboardLayout'
 import { JournalEntryComponent } from '@/app/components/journal/JournalEntery'
 import { JournalForm } from '@/app/components/journal/JournalForm'
 import { useCrud } from '@/app/hooks/useCrud'
+import { JournalFormData } from '@/app/types'
 
 interface JournalEntry {
   id: string
@@ -31,7 +32,7 @@ export default function JournalPage() {
   
   const {
     items: entries,
-    isLoading,
+    // isLoading,
     createItem,
     updateItem,
     deleteItem,
@@ -47,11 +48,11 @@ export default function JournalPage() {
     onClose()
   }
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: JournalFormData) => {
     if (editingEntry) {
-      await updateItem(editingEntry.id, data)
+      await updateItem(editingEntry.id, data as Partial<JournalEntry>)
     } else {
-      await createItem(data)
+      await createItem(data as Partial<JournalEntry>)
     }
     handleCloseForm()
   }
@@ -85,7 +86,7 @@ export default function JournalPage() {
           isOpen={isOpen}
           onClose={handleCloseForm}
           onSubmit={handleSubmit}
-          initialData={editingEntry}
+          initialData={editingEntry as JournalFormData | undefined}
         />
       </Box>
     </DashboardLayout>

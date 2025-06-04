@@ -14,25 +14,14 @@ import { DashboardLayout } from '@/app/components/layout/DashboardLayout'
 import { GoalCard } from '@/app/components/goals/GoalCard'
 import { GoalForm } from '@/app/components/goals/GoalForm'
 import { useCrud } from '@/app/hooks/useCrud'
-
-interface Goal {
-  id: string
-  title: string
-  description?: string
-  targetDate?: string
-  progress: number
-  completed: boolean
-  aiSuggested: boolean
-  aiApproved?: boolean
-}
-
+import type { Goal } from '@/app/types'
 export default function GoalsPage() {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null)
   
   const {
     items: goals,
-    isLoading,
+    // isLoading,
     createItem,
     updateItem,
     deleteItem,
@@ -48,11 +37,11 @@ export default function GoalsPage() {
     onClose()
   }
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: import('@/app/types').GoalFormData) => {
     if (editingGoal) {
-      await updateItem(editingGoal.id, data)
+      await updateItem(editingGoal.id, data as Partial<Goal>)
     } else {
-      await createItem(data)
+      await createItem(data as Partial<Goal>)
     }
     handleCloseForm()
   }
@@ -75,7 +64,7 @@ export default function GoalsPage() {
           {goals.map((goal) => (
             <GoalCard
               key={goal.id}
-              goal={goal}
+              goal={goal as Goal}
               onEdit={handleEdit}
               onDelete={deleteItem}
               onUpdateProgress={(id, progress) => 
@@ -88,8 +77,8 @@ export default function GoalsPage() {
         <GoalForm
           isOpen={isOpen}
           onClose={handleCloseForm}
-          onSubmit={handleSubmit}
-          initialData={editingGoal}
+          onSubmit={handleSubmit} 
+          initialData={editingGoal as Goal | undefined}
         />
       </Box>
     </DashboardLayout>

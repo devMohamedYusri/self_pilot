@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/lib/auth'
 import { prisma } from '@/app/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export async function POST(
   req: Request,
@@ -20,39 +21,126 @@ export async function POST(
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
-  // Try to find the suggestion in each model
-  const models = ['task', 'goal', 'habit', 'routine'] as const
+  // Check each model individually for better type safety
   
-  for (const model of models) {
-    const record = await (prisma[model] as any).findFirst({
-      where: {
-        id: params.id,
-        userId: user.id,
-        aiSuggested: true
+  // Check tasks
+  const task = await prisma.task.findFirst({
+    where: {
+      id: params.id,
+      userId: user.id,
+      aiSuggested: true
+    }
+  })
+
+  if (task) {
+    await prisma.task.update({
+      where: { id: params.id },
+      data: { aiApproved: true }
+    })
+
+    const logDetails: Prisma.JsonObject = { approved: true }
+    await prisma.aILog.create({
+      data: {
+        action: 'approve',
+        entityType: 'task',
+        entityId: params.id,
+        details: logDetails,
+        approved: true,
+        userId: user.id
       }
     })
 
-    if (record) {
-      // Update the record
-      await (prisma[model] as any).update({
-        where: { id: params.id },
-        data: { aiApproved: true }
-      })
+    return NextResponse.json({ success: true, type: 'task' })
+  }
 
-      // Log the approval
-      await prisma.aILog.create({
-        data: {
-          action: 'approve',
-          entityType: model,
-          entityId: params.id,
-          details: { approved: true },
-          approved: true,
-          userId: user.id
-        }
-      })
-
-      return NextResponse.json({ success: true, type: model })
+  // Check goals
+  const goal = await prisma.goal.findFirst({
+    where: {
+      id: params.id,
+      userId: user.id,
+      aiSuggested: true
     }
+  })
+
+  if (goal) {
+    await prisma.goal.update({
+      where: { id: params.id },
+      data: { aiApproved: true }
+    })
+
+    const logDetails: Prisma.JsonObject = { approved: true }
+    await prisma.aILog.create({
+      data: {
+        action: 'approve',
+        entityType: 'goal',
+        entityId: params.id,
+        details: logDetails,
+        approved: true,
+        userId: user.id
+      }
+    })
+
+    return NextResponse.json({ success: true, type: 'goal' })
+  }
+
+  // Check habits
+  const habit = await prisma.habit.findFirst({
+    where: {
+      id: params.id,
+      userId: user.id,
+      aiSuggested: true
+    }
+  })
+
+  if (habit) {
+    await prisma.habit.update({
+      where: { id: params.id },
+      data: { aiApproved: true }
+    })
+
+    const logDetails: Prisma.JsonObject = { approved: true }
+    await prisma.aILog.create({
+      data: {
+        action: 'approve',
+        entityType: 'habit',
+        entityId: params.id,
+        details: logDetails,
+        approved: true,
+        userId: user.id
+      }
+    })
+
+    return NextResponse.json({ success: true, type: 'habit' })
+  }
+
+  // Check routines
+  const routine = await prisma.routine.findFirst({
+    where: {
+      id: params.id,
+      userId: user.id,
+      aiSuggested: true
+    }
+  })
+
+  if (routine) {
+    await prisma.routine.update({
+      where: { id: params.id },
+      data: { aiApproved: true }
+    })
+
+    const logDetails: Prisma.JsonObject = { approved: true }
+    await prisma.aILog.create({
+      data: {
+        action: 'approve',
+        entityType: 'routine',
+        entityId: params.id,
+        details: logDetails,
+        approved: true,
+        userId: user.id
+      }
+    })
+
+    return NextResponse.json({ success: true, type: 'routine' })
   }
 
   return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 })

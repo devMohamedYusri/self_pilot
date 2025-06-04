@@ -4,12 +4,62 @@ import { authOptions } from '@/app/lib/auth'
 import { AIManager } from '@/app/lib/ai/manager'
 import { AI_FUNCTIONS, SYSTEM_PROMPT } from '@/app/lib/ai/functions'
 import { prisma } from '@/app/lib/prisma'
+import { Prisma } from '@prisma/client'
+
+// Define proper types
+type ChatMessage = {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+type FunctionCall = {
+  name: string
+  arguments: Record<string, unknown>
+}
 
 type FunctionExecutionResult = {
-  name: string;
-  status: 'success' | 'error';
-  result?: any;
-  error?: string;
+  name: string
+  status: 'success' | 'error'
+  result?: unknown
+  error?: string
+}
+
+// Define step type for routines
+type RoutineStep = {
+  order: number
+  task: string
+  duration?: number
+}
+
+type FunctionArgs = {
+  // Task related
+  title?: string
+  description?: string
+  priority?: string
+  dueDate?: string
+  completed?: boolean
+  taskId?: string
+  
+  // Goal related
+  targetDate?: string
+  progress?: number
+  
+  // Habit related
+  frequency?: string
+  streak?: number
+  
+  // Routine related
+  timeOfDay?: string
+  steps?: RoutineStep[]
+  
+  // Journal related
+  content?: string
+  mood?: string
+  tags?: string[]
+  
+  // Common
+  aiSuggested?: boolean
+  aiApproved?: boolean
 }
 
 export async function POST(req: Request) {
@@ -30,9 +80,9 @@ export async function POST(req: Request) {
     const { messages, message } = await req.json()
 
     // Build conversation history
-    const conversationMessages = [
-      { role: 'system' as const, content: SYSTEM_PROMPT },
-      ...(messages || []).map((msg: any) => ({
+    const conversationMessages: ChatMessage[] = [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...(messages || []).map((msg: ChatMessage) => ({
         role: msg.role,
         content: msg.content
       }))
@@ -40,7 +90,7 @@ export async function POST(req: Request) {
 
     // If only a single message was sent, add it
     if (message && !messages) {
-      conversationMessages.push({ role: 'user' as const, content: message })
+      conversationMessages.push({ role: 'user', content: message })
     }
 
     // Initialize AI Manager
@@ -59,17 +109,19 @@ export async function POST(req: Request) {
       functionsExecuted = await processFunctionCalls(response.functions, user.id)
     }
 
-    // Log the conversation
+    // Log the conversation - properly type the details as JsonValue
+    const logDetails: Prisma.JsonObject = {
+      provider: response.provider,
+      message: message || (messages && messages.length > 0 ? messages[messages.length - 1].content : ''),
+      response: response.content,
+      functions: functionsExecuted as Prisma.JsonArray
+    }
+
     await prisma.aILog.create({
       data: {
         action: 'chat',
         entityType: 'conversation',
-        details: {
-          provider: response.provider,
-          message: message || messages[messages.length - 1]?.content,
-          response: response.content,
-          functions: functionsExecuted
-        },
+        details: logDetails,
         userId: user.id
       }
     })
@@ -88,21 +140,21 @@ export async function POST(req: Request) {
   }
 }
 
-async function processFunctionCalls(functions: any[], userId: string): Promise<FunctionExecutionResult[]> {
+async function processFunctionCalls(functions: FunctionCall[], userId: string): Promise<FunctionExecutionResult[]> {
   const results: FunctionExecutionResult[] = []
 
   for (const func of functions) {
     try {
-      const result = await executeFunction(func.name, func.arguments, userId)
+      const result = await executeFunction(func.name, func.arguments as FunctionArgs, userId)
       results.push({
         name: func.name,
-        status: 'success' as const,
+        status: 'success',
         result
       })
     } catch (error) {
       results.push({
         name: func.name,
-        status: 'error' as const,
+        status: 'error',
         error: error instanceof Error ? error.message : 'Unknown error'
       })
     }
@@ -111,12 +163,14 @@ async function processFunctionCalls(functions: any[], userId: string): Promise<F
   return results
 }
 
-async function executeFunction(name: string, args: any, userId: string) {
+async function executeFunction(name: string, args: FunctionArgs, userId: string) {
   switch (name) {
     case 'create_task':
       return await prisma.task.create({
         data: {
-          ...args,
+          title: args.title || '',
+          description: args.description,
+          priority: args.priority,
           userId,
           aiSuggested: true,
           aiApproved: false,
@@ -127,7 +181,8 @@ async function executeFunction(name: string, args: any, userId: string) {
     case 'create_goal':
       return await prisma.goal.create({
         data: {
-          ...args,
+          title: args.title || '',
+          description: args.description,
           userId,
           aiSuggested: true,
           aiApproved: false,
@@ -139,7 +194,9 @@ async function executeFunction(name: string, args: any, userId: string) {
     case 'create_habit':
       return await prisma.habit.create({
         data: {
-          ...args,
+          title: args.title || '',
+          description: args.description,
+          frequency: args.frequency || 'daily',
           userId,
           aiSuggested: true,
           aiApproved: false,
@@ -148,27 +205,33 @@ async function executeFunction(name: string, args: any, userId: string) {
       })
 
     case 'create_routine':
+      // Properly type steps as JsonValue
+      const routineSteps: Prisma.JsonValue = args.steps || []
+      
       return await prisma.routine.create({
         data: {
-          ...args,
+          title: args.title || '',
+          description: args.description,
+          timeOfDay: args.timeOfDay || 'morning',
           userId,
           aiSuggested: true,
           aiApproved: false,
-          steps: args.steps || []
+          steps: routineSteps
         }
       })
 
     case 'create_journal_entry':
       const entry = await prisma.journal.create({
         data: {
-          ...args,
+          title: args.title || '',
+          content: args.content || '',
+          mood: args.mood,
           userId,
           tags: args.tags || []
         }
       })
       
       // Generate AI analysis
-      // This would normally call the AI again for analysis
       await prisma.journal.update({
         where: { id: entry.id },
         data: {
@@ -190,13 +253,16 @@ async function executeFunction(name: string, args: any, userId: string) {
       })
 
     case 'update_task_status':
+      if (!args.taskId) {
+        throw new Error('taskId is required')
+      }
       return await prisma.task.update({
         where: {
           id: args.taskId,
           userId
         },
         data: {
-          completed: args.completed
+          completed: args.completed || false
         }
       })
 

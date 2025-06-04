@@ -1,3 +1,4 @@
+// api/auth/signup/route.ts
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/app/lib/prisma'
@@ -38,7 +39,14 @@ export async function POST(req: Request) {
       }
     })
     
-    const { password: _, ...userWithoutPassword } = user
+    // Fixed: Remove unused variable by creating a new object without password
+    const userWithoutPassword = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      image:user.image,
+      verfied:user.emailVerified
+    }
     
     return NextResponse.json({ 
       user: userWithoutPassword,

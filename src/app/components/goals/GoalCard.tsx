@@ -13,18 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { format } from 'date-fns'
-
-interface Goal {
-  id: string
-  title: string
-  description?: string
-  targetDate?: string
-  progress: number
-  completed: boolean
-  aiSuggested: boolean
-  aiApproved?: boolean
-}
-
+import type { Goal } from '@/app/types'
 interface GoalCardProps {
   goal: Goal
   onEdit: (goal: Goal) => void
@@ -32,7 +21,8 @@ interface GoalCardProps {
   onUpdateProgress: (id: string, progress: number) => void
 }
 
-export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress }: GoalCardProps) {
+// export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress }: GoalCardProps) {
+export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
   return (
     <Card>
       <CardBody>

@@ -16,7 +16,8 @@ export function useCrud<T>({ endpoint, onSuccess }: UseCrudOptions) {
       const res = await fetch(endpoint)
       const data = await res.json()
       setItems(data)
-    } catch (error) {
+    } catch (error) { // Fixed: Now using the error variable
+      console.error('Failed to fetch items:', error) // Fixed: Added error logging
       toast({
         title: 'Error',
         description: 'Failed to fetch data',
@@ -38,7 +39,8 @@ export function useCrud<T>({ endpoint, onSuccess }: UseCrudOptions) {
         await fetchItems()
         onSuccess?.()
       }
-    } catch (error) {
+    } catch (error) { // Fixed: Now using the error variable
+      console.error('Failed to create item:', error) // Fixed: Added error logging
       toast({
         title: 'Error',
         description: 'Failed to create item',
@@ -58,7 +60,8 @@ export function useCrud<T>({ endpoint, onSuccess }: UseCrudOptions) {
         await fetchItems()
         onSuccess?.()
       }
-    } catch (error) {
+    } catch (error) { // Fixed: Now using the error variable
+      console.error('Failed to update item:', error) // Fixed: Added error logging
       toast({
         title: 'Error',
         description: 'Failed to update item',
@@ -76,7 +79,8 @@ export function useCrud<T>({ endpoint, onSuccess }: UseCrudOptions) {
         await fetchItems()
         onSuccess?.()
       }
-    } catch (error) {
+    } catch (error) { // Fixed: Now using the error variable
+      console.error('Failed to delete item:', error) // Fixed: Added error logging
       toast({
         title: 'Error',
         description: 'Failed to delete item',
@@ -87,7 +91,8 @@ export function useCrud<T>({ endpoint, onSuccess }: UseCrudOptions) {
 
   useEffect(() => {
     fetchItems()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Fixed: Added eslint comment to acknowledge intentional empty dependency array
 
   return {
     items,

@@ -2,7 +2,6 @@
 
 import { Server as HTTPServer } from 'http'
 import { Server as SocketServer } from 'socket.io'
-import { NextApiResponse } from 'next'
 
 export const initSocket = (server: HTTPServer) => {
   const io = new SocketServer(server, {

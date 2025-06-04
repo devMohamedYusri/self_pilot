@@ -1,7 +1,9 @@
 import { useEffect, useCallback } from 'react'
 import { useSocket } from '@/app/contexts/socket-context'
 
-export function useRealtimeSync<T>(
+type EmitData<T> = T | Partial<T> | { id: string } | Record<string, unknown>
+
+export function useRealtimeSync<T extends { id: string }>(
   entityName: string,
   onUpdate: (data: T) => void,
   onDelete: (id: string) => void
@@ -34,7 +36,7 @@ export function useRealtimeSync<T>(
     }
   }, [socket, entityName, onUpdate, onDelete])
 
-  const emit = useCallback((action: string, data: any) => {
+  const emit = useCallback((action: string, data: EmitData<T>) => {
     if (socket) {
       socket.emit(`${entityName}:${action}`, data)
     }

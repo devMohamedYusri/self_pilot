@@ -5,13 +5,26 @@ import { io, Socket } from 'socket.io-client'
 import { useSession } from 'next-auth/react'
 import { useToast } from '@chakra-ui/react'
 import { aiNotificationManager } from '@/app/lib/notifications/AINotificationManager'
+import type { 
+  SocketEventMap, 
+  AISocketEvent,
+  AINotificationData,
+  SocketEventHandler,
+  AINotification
+} from '@/app/types'
 
 interface SocketContextType {
   socket: Socket | null
   isConnected: boolean
-  emit: (event: string, data: any) => void
-  on: (event: string, handler: (...args: any[]) => void) => void
-  off: (event: string, handler: (...args: any[]) => void) => void
+  emit: <K extends keyof SocketEventMap>(event: K, data: SocketEventMap[K]) => void
+  on: <K extends keyof SocketEventMap>(
+    event: K, 
+    handler: (data: SocketEventMap[K]) => void
+  ) => void
+  off: <K extends keyof SocketEventMap>(
+    event: K, 
+    handler: (data: SocketEventMap[K]) => void
+  ) => void
 }
 
 const SocketContext = createContext<SocketContextType>({
@@ -61,18 +74,25 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       })
 
       // AI-specific events
-      socketInstance.on('ai:suggestion:new', (data) => {
-        aiNotificationManager.notify({
-          type: 'task_suggestion',
-          data,
-          metadata: {
-            priority: 'high',
-            requiresAction: true
+      socketInstance.on('ai:suggestion:new', (data: AINotificationData) => {
+        if (data.type === 'task_suggestion') {
+          const notification = {
+            type: 'task_suggestion' as const,
+            data: {
+              id: data.data.id,
+              message: data.data.message,
+              task: data.data.task
+            },
+            metadata: {
+              priority: 'high' as const,
+              requiresAction: true
+            }
           }
-        })
+          aiNotificationManager.notify(notification)
+        }
       })
 
-      socketInstance.on('ai:analyzing', (data) => {
+      socketInstance.on('ai:analyzing', (data: AISocketEvent) => {
         toast({
           title: 'AI Analyzing',
           description: `Analyzing your ${data.entity}...`,
@@ -82,10 +102,10 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         })
       })
 
-      socketInstance.on('ai:processing', (data) => {
+      socketInstance.on('ai:processing', (data: { message?: string }) => {
         toast({
           title: 'AI Processing',
-          description: 'Your request is being processed',
+          description: data.message || 'Your request is being processed',
           status: 'info',
           duration: 2000,
           position: 'bottom',
@@ -100,21 +120,34 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, toast])
 
-  const emit = useCallback((event: string, data: any) => {
+  const emit = useCallback(<K extends keyof SocketEventMap>(
+    event: K, 
+    data: SocketEventMap[K]
+  ) => {
     if (socket?.connected) {
-      socket.emit(event, data)
+      socket.emit(event as string, data)
     }
   }, [socket])
 
-  const on = useCallback((event: string, handler: (...args: any[]) => void) => {
+  const on = useCallback(<K extends keyof SocketEventMap>(
+    event: K, 
+    handler: (data: SocketEventMap[K]) => void
+  ) => {
     if (socket) {
-      socket.on(event, handler)
+      // Fixed: Use proper type casting instead of any
+      const socketHandler: SocketEventHandler = handler as SocketEventHandler
+      socket.on(event as string, socketHandler)
     }
   }, [socket])
 
-  const off = useCallback((event: string, handler: (...args: any[]) => void) => {
+  const off = useCallback(<K extends keyof SocketEventMap>(
+    event: K, 
+    handler: (data: SocketEventMap[K]) => void
+  ) => {
     if (socket) {
-      socket.off(event, handler)
+      // Fixed: Use proper type casting instead of any
+      const socketHandler: SocketEventHandler = handler as SocketEventHandler
+      socket.off(event as string, socketHandler)
     }
   }, [socket])
 

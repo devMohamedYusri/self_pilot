@@ -11,31 +11,33 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, FieldValues, Path, FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { FormField } from '@/app/types'
 
-interface EnhancedFormProps {
-  schema: z.ZodSchema
-  onSubmit: (data: any) => Promise<void>
-  fields: Array<{
-    name: string
-    label: string
-    type: 'text' | 'textarea' | 'email' | 'password' | 'number'
-    placeholder?: string
-    required?: boolean
-  }>
+// Generic form field type
+export type FormFieldType = 'text' | 'textarea' | 'email' | 'password' | 'number'
+
+// Generic form field interface
+// Enhanced form props with proper generics
+interface EnhancedFormProps<TSchema extends z.ZodType<any, any, any>> {
+  schema: TSchema
+  onSubmit: (data: z.infer<TSchema>) => Promise<void>
+  fields: Array<FormField<z.infer<TSchema>>>
   submitLabel?: string
   onSuccess?: () => void
 }
 
-export function EnhancedForm({
+export function EnhancedForm<TSchema extends z.ZodType<any, any, any>>({
   schema,
   onSubmit,
   fields,
   submitLabel = 'Submit',
   onSuccess
-}: EnhancedFormProps) {
+}: EnhancedFormProps<TSchema>) {
+  type FormData = z.infer<TSchema>
+  
   const [isSubmitting, setIsSubmitting] = useState(false)
   const toast = useToast()
   
@@ -44,11 +46,11 @@ export function EnhancedForm({
     handleSubmit,
     formState: { errors },
     reset
-  } = useForm({
+  } = useForm<FormData>({
     resolver: zodResolver(schema)
   })
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: FormData) => {
     setIsSubmitting(true)
     
     try {
@@ -73,6 +75,12 @@ export function EnhancedForm({
     }
   }
 
+  // Helper function to get error message
+  const getErrorMessage = (fieldName: Path<FormData>): string | undefined => {
+    const error = errors[fieldName]
+    return error?.message as string | undefined
+  }
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <VStack spacing={4}>
@@ -81,20 +89,20 @@ export function EnhancedForm({
             <FormLabel>{field.label}</FormLabel>
             {field.type === 'textarea' ? (
               <Textarea
-                {...register(field.name)}
+                {...register(field.name as Path<FormData>)}
                 placeholder={field.placeholder}
                 isDisabled={isSubmitting}
               />
             ) : (
               <Input
-                {...register(field.name)}
+                {...register(field.name as Path<FormData>)}
                 type={field.type}
                 placeholder={field.placeholder}
                 isDisabled={isSubmitting}
               />
             )}
             <FormErrorMessage>
-              {errors[field.name]?.message as string}
+              {getErrorMessage(field.name as Path<FormData>)}
             </FormErrorMessage>
           </FormControl>
         ))}

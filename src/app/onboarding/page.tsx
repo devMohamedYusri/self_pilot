@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function OnboardingPage() {
-  const { data: session, status } = useSession()
+  // const { data: session, status } = useSession()
+  const {status } = useSession()
   const router = useRouter()
 
   useEffect(() => {
@@ -25,8 +26,8 @@ export default function OnboardingPage() {
               Welcome to LifePilot
             </Heading>
             <Text mt={2} color="gray.600">
-              Let's personalize your experience
-            </Text>
+            Let&apos;s personalize your experience       
+           </Text>
           </Box>
           
           <Box

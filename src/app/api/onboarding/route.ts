@@ -4,6 +4,35 @@ import { authOptions } from '@/app/lib/auth'
 import { prisma } from '@/app/lib/prisma'
 import { AIManager } from '@/app/lib/ai/manager'
 import { SYSTEM_PROMPT } from '@/app/lib/ai/functions'
+import { Prisma } from '@prisma/client'
+
+// Define proper types for onboarding responses
+type OnboardingResponses = {
+  name?: string
+  goals?: string[]
+  challenge?: string
+  productiveTime?: string
+  aiMode?: string
+}
+
+type SampleTask = {
+  title: string
+  description: string
+  priority: string
+  dueDate: Date
+}
+
+type SampleGoal = {
+  title: string
+  description: string
+  targetDate: Date
+}
+
+type SampleHabit = {
+  title: string
+  description: string
+  frequency: string
+}
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -19,7 +48,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
-  const responses = await req.json()
+  const responses: OnboardingResponses = await req.json()
 
   // Update user profile
   await prisma.user.update({
@@ -40,9 +69,10 @@ export async function POST(req: Request) {
     Return as JSON array with title, description, priority, and dueDate fields.`
 
   try {
-    const aiResponse = await aiManager.chat([
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: tasksPrompt }
+    // Call AI for suggestions (you can use the response if needed)
+    await aiManager.chat([
+      { role: 'system' as const, content: SYSTEM_PROMPT },
+      { role: 'user' as const, content: tasksPrompt }
     ])
 
     // Parse AI response and create tasks
@@ -92,17 +122,19 @@ export async function POST(req: Request) {
       })
     }
 
-    // Log onboarding completion
+    // Log onboarding completion - properly type the details
+    const logDetails: Prisma.JsonObject = {
+      responses: responses as unknown as Prisma.JsonObject,
+      tasksCreated,
+      goalsCreated,
+      habitsCreated: sampleHabits.length
+    }
+
     await prisma.aILog.create({
       data: {
         action: 'onboarding',
         entityType: 'user',
-        details: {
-          responses,
-          tasksCreated,
-          goalsCreated,
-          habitsCreated: sampleHabits.length
-        },
+        details: logDetails,
         userId: user.id
       }
     })
@@ -122,13 +154,14 @@ export async function POST(req: Request) {
   }
 }
 
-function generateSampleTasks(responses: any) {
-  const tasks = []
+function generateSampleTasks(responses: OnboardingResponses): SampleTask[] {
+  const tasks: SampleTask[] = []
   const today = new Date()
-  const tomorrow = new Date(today)
-  tomorrow.setDate(tomorrow.getDate() + 1)
-
+  
   if (responses.goals?.includes('Productivity')) {
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    
     tasks.push({
       title: 'Set up daily planning routine',
       description: 'Create a 15-minute morning planning session',
@@ -138,50 +171,62 @@ function generateSampleTasks(responses: any) {
   }
 
   if (responses.goals?.includes('Health & Fitness')) {
+    const threeDaysLater = new Date(today)
+    threeDaysLater.setDate(threeDaysLater.getDate() + 3)
+    
     tasks.push({
       title: 'Schedule workout sessions',
       description: 'Plan 3 workout sessions for this week',
       priority: 'medium',
-      dueDate: new Date(today.setDate(today.getDate() + 3))
+      dueDate: threeDaysLater
     })
   }
 
   if (responses.challenge) {
+    const weekLater = new Date(today)
+    weekLater.setDate(weekLater.getDate() + 7)
+    
     tasks.push({
       title: `Address: ${responses.challenge.substring(0, 50)}...`,
       description: 'Break down your main challenge into actionable steps',
       priority: 'high',
-      dueDate: new Date(today.setDate(today.getDate() + 7))
+      dueDate: weekLater
     })
   }
 
   return tasks
 }
 
-function generateSampleGoals(responses: any) {
-  const goals = []
+function generateSampleGoals(responses: OnboardingResponses): SampleGoal[] {
+  const goals: SampleGoal[] = []
 
   if (responses.goals?.includes('Personal Growth')) {
+    const threeMonthsLater = new Date()
+    threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3)
+    
     goals.push({
       title: 'Develop a growth mindset',
       description: 'Read 2 personal development books per month',
-      targetDate: new Date(new Date().setMonth(new Date().getMonth() + 3))
+      targetDate: threeMonthsLater
     })
   }
 
   if (responses.goals?.includes('Work-Life Balance')) {
+    const oneMonthLater = new Date()
+    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1)
+    
     goals.push({
       title: 'Achieve better work-life balance',
       description: 'Establish clear boundaries and dedicated personal time',
-      targetDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
+      targetDate: oneMonthLater
     })
   }
 
   return goals
 }
 
-function generateSampleHabits(responses: any) {
-  const habits = []
+function generateSampleHabits(responses: OnboardingResponses): SampleHabit[] {
+  const habits: SampleHabit[] = []
 
   if (responses.productiveTime?.includes('Morning')) {
     habits.push({

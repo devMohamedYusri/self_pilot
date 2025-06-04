@@ -14,6 +14,7 @@ import { DashboardLayout } from '@/app/components/layout/DashboardLayout'
 import { HabitTracker } from '@/app/components/habits/HabitTracker'
 import { HabitForm } from '@/app/components/habits/HabitForm'
 import { useCrud } from '@/app/hooks/useCrud'
+import { HabitFormData } from '@/app/types'
 
 interface Habit {
   id: string
@@ -33,7 +34,7 @@ export default function HabitsPage() {
   
   const {
     items: habits,
-    isLoading,
+    // isLoading,
     createItem,
     updateItem,
     deleteItem,
@@ -49,9 +50,9 @@ export default function HabitsPage() {
     onClose()
   }
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: HabitFormData) => {
     if (editingHabit) {
-      await updateItem(editingHabit.id, data)
+      await updateItem(editingHabit.id, data as Partial<Habit>)
     } else {
       await createItem(data)
     }
@@ -96,7 +97,7 @@ export default function HabitsPage() {
           isOpen={isOpen}
           onClose={handleCloseForm}
           onSubmit={handleSubmit}
-          initialData={editingHabit}
+          initialData={editingHabit as import('@/app/types').Habit | undefined}
         />
       </Box>
     </DashboardLayout>

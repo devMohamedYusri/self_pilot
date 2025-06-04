@@ -5,7 +5,7 @@ import { authOptions } from '@/app/lib/auth'
 import { prisma } from '@/app/lib/prisma'
 
 export async function GET(
-  req: Request,
+  _req: Request, // Fixed: Added underscore to indicate intentionally unused parameter
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions)
@@ -34,7 +34,8 @@ export async function GET(
     }
 
     return NextResponse.json(journal)
-  } catch (error) {
+  } catch (error) { // Fixed: Now using the error variable
+    console.error('Error fetching journal entry:', error) // Fixed: Added error logging
     return NextResponse.json({ error: 'Failed to fetch journal entry' }, { status: 500 })
   }
 }
@@ -80,7 +81,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  req: Request,
+  _req: Request, // Fixed: Added underscore to indicate intentionally unused parameter
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions)

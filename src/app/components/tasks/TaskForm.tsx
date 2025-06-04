@@ -18,12 +18,12 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { useState, useEffect } from 'react'
-
+import type { TaskFormData, TaskPriority } from '@/app/types'
 interface TaskFormProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: any) => Promise<void>
-  initialData?: any
+  onSubmit: (data: TaskFormData) => Promise<void>
+  initialData?: TaskFormData
 }
 
 export function TaskForm({ isOpen, onClose, onSubmit, initialData }: TaskFormProps) {
@@ -55,6 +55,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, initialData }: TaskFormPro
       await onSubmit({
         ...formData,
         dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
+        priority: formData.priority as TaskPriority,
       })
       toast({
         title: initialData ? 'Task updated' : 'Task created',
@@ -69,9 +70,10 @@ export function TaskForm({ isOpen, onClose, onSubmit, initialData }: TaskFormPro
         priority: 'medium',
       })
     } catch (error) {
+      console.error("faield to save task error ", error)
       toast({
         title: 'Error',
-        description: 'Failed to save task',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
         status: 'error',
         duration: 3000,
       })

@@ -13,27 +13,14 @@ import {
   Badge,
   Box,
   Input,
-  InputLeftElement,
   Select,
-  IconButton,
   Divider,
   Spinner,
-  useDisclosure,
 } from '@chakra-ui/react'
-import { FiFilter, FiSearch, FiClock } from 'react-icons/fi'
+import { FiSearch, FiClock } from 'react-icons/fi'
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-
-interface AIHistoryItem {
-  id: string
-  action: string
-  entityType: string
-  entityId?: string
-  details: any
-  approved?: boolean
-  createdAt: string
-  userId: string
-}
+import type { AILog, AILogAction, AILogEntityType, AIHistoryDetails } from '@/app/types/index'
 
 interface AIHistorySidebarProps {
   isOpen: boolean
@@ -41,12 +28,12 @@ interface AIHistorySidebarProps {
 }
 
 export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
-  const [history, setHistory] = useState<AIHistoryItem[]>([])
-  const [filteredHistory, setFilteredHistory] = useState<AIHistoryItem[]>([])
+  const [history, setHistory] = useState<AILog[]>([])
+  const [filteredHistory, setFilteredHistory] = useState<AILog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState('all')
-  const [filterAction, setFilterAction] = useState('all')
+  const [filterType, setFilterType] = useState<AILogEntityType | 'all'>('all')
+  const [filterAction, setFilterAction] = useState<AILogAction | 'all'>('all')
 
   useEffect(() => {
     if (isOpen) {
@@ -61,7 +48,8 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
   const fetchHistory = async () => {
     try {
       const res = await fetch('/api/ai/history')
-      const data = await res.json()
+      if (!res.ok) throw new Error('Failed to fetch history')
+      const data: AILog[] = await res.json()
       setHistory(data)
     } catch (error) {
       console.error('Failed to fetch AI history:', error)
@@ -75,10 +63,12 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(item =>
-        JSON.stringify(item.details).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.action.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = filtered.filter(item => {
+        const details = item.details as AIHistoryDetails
+        const detailsString = JSON.stringify(details).toLowerCase()
+        return detailsString.includes(searchTerm.toLowerCase()) ||
+          item.action.toLowerCase().includes(searchTerm.toLowerCase())
+      })
     }
 
     // Filter by entity type
@@ -94,7 +84,7 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
     setFilteredHistory(filtered)
   }
 
-  const getActionColor = (action: string) => {
+  const getActionColor = (action: string): string => {
     switch (action) {
       case 'create': return 'green'
       case 'update': return 'blue'
@@ -107,12 +97,11 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
     }
   }
 
-  const getEntityIcon = (entityType: string) => {
+  const getEntityIcon = (entityType: string): string => {
     switch (entityType) {
       case 'task': return '✓'
       case 'goal': return '🎯'
       case 'habit': return '🔄'
-      case 'routine': return '⏰'
       case 'journal': return '📝'
       case 'conversation': return '💬'
       default: return '📋'
@@ -136,33 +125,34 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
             {/* Filters */}
             <Box>
               <HStack mb={3}>
-                <Input
-                  placeholder="Search history..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                >
-                  <InputLeftElement>
+                <Box position="relative" flex={1}>
+                  <Input
+                    placeholder="Search history..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    pl={10}
+                  />
+                  <Box position="absolute" left={3} top="50%" transform="translateY(-50%)">
                     <FiSearch />
-                  </InputLeftElement>
-                </Input>
+                  </Box>
+                </Box>
               </HStack>
               <HStack>
                 <Select
                   value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
+                  onChange={(e) => setFilterType(e.target.value as AILogEntityType | 'all')}
                   size="sm"
                 >
                   <option value="all">All Types</option>
                   <option value="task">Tasks</option>
                   <option value="goal">Goals</option>
                   <option value="habit">Habits</option>
-                  <option value="routine">Routines</option>
                   <option value="journal">Journal</option>
                   <option value="conversation">Chats</option>
                 </Select>
                 <Select
                   value={filterAction}
-                  onChange={(e) => setFilterAction(e.target.value)}
+                  onChange={(e) => setFilterAction(e.target.value as AILogAction | 'all')}
                   size="sm"
                 >
                   <option value="all">All Actions</option>
@@ -186,49 +176,52 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
               </Box>
             ) : (
               <VStack spacing={3} align="stretch">
-                {filteredHistory.map((item) => (
-                  <Box
-                    key={item.id}
-                    p={3}
-                    borderWidth={1}
-                    borderRadius="md"
-                    borderColor="gray.200"
-                    _hover={{ bg: 'gray.50' }}
-                  >
-                    <HStack justify="space-between" mb={1}>
-                      <HStack>
-                        <Text fontSize="lg">{getEntityIcon(item.entityType)}</Text>
-                        <Badge colorScheme={getActionColor(item.action)}>
-                          {item.action}
-                        </Badge>
-                        {item.approved !== undefined && (
-                          <Badge colorScheme={item.approved ? 'green' : 'red'}>
-                            {item.approved ? 'Approved' : 'Rejected'}
+                {filteredHistory.map((item) => {
+                  const details = item.details as AIHistoryDetails
+                  return (
+                    <Box
+                      key={item.id}
+                      p={3}
+                      borderWidth={1}
+                      borderRadius="md"
+                      borderColor="gray.200"
+                      _hover={{ bg: 'gray.50' }}
+                    >
+                      <HStack justify="space-between" mb={1}>
+                        <HStack>
+                          <Text fontSize="lg">{getEntityIcon(item.entityType)}</Text>
+                          <Badge colorScheme={getActionColor(item.action)}>
+                            {item.action}
                           </Badge>
-                        )}
+                          {item.approved !== undefined && item.approved !== null && (
+                            <Badge colorScheme={item.approved ? 'green' : 'red'}>
+                              {item.approved ? 'Approved' : 'Rejected'}
+                            </Badge>
+                          )}
+                        </HStack>
+                        <Text fontSize="xs" color="gray.500">
+                          {format(new Date(item.createdAt), 'MMM d, h:mm a')}
+                        </Text>
                       </HStack>
-                      <Text fontSize="xs" color="gray.500">
-                        {format(new Date(item.createdAt), 'MMM d, h:mm a')}
+                      <Text fontSize="sm" color="gray.700">
+                        {item.entityType.charAt(0).toUpperCase() + item.entityType.slice(1)}
+                        {details.title && `: "${details.title}"`}
                       </Text>
-                    </HStack>
-                    <Text fontSize="sm" color="gray.700">
-                      {item.entityType.charAt(0).toUpperCase() + item.entityType.slice(1)}
-                      {item.details.title && `: "${item.details.title}"`}
-                    </Text>
-                    
-                    {item.details.message && (
-                      <Text fontSize="xs" color="gray.600" mt={1}>
-                        {item.details.message}
-                      </Text>
-                    )}
-                    
-                    {item.details.provider && (
-                      <Text fontSize="xs" color="gray.500" mt={1}>
-                        AI Provider: {item.details.provider}
-                      </Text>
-                    )}
-                  </Box>
-                ))}
+                      
+                      {details.message && (
+                        <Text fontSize="xs" color="gray.600" mt={1}>
+                          {details.message}
+                        </Text>
+                      )}
+                      
+                      {details.provider && (
+                        <Text fontSize="xs" color="gray.500" mt={1}>
+                          AI Provider: {details.provider}
+                        </Text>
+                      )}
+                    </Box>
+                  )
+                })}
                 
                 {filteredHistory.length === 0 && (
                   <Box textAlign="center" py={8}>

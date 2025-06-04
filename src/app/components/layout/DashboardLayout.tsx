@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image'; // Fixed: Added Image import from next/image
 import {
   Home,
   CheckSquare,
@@ -237,10 +238,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     className="relative h-8 w-8 rounded-full bg-muted flex items-center justify-center hover:ring-2 hover:ring-gray-300 transition-all"
                   >
                     {session?.user?.image ? (
-                      <img
+                      <Image
                         src={session.user.image}
-                        alt={session.user.name || ''}
-                        className="h-8 w-8 rounded-full"
+                        alt={session.user.name || 'User profile'}
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded-full object-cover"
                       />
                     ) : (
                       <span className="text-sm font-medium text-muted-foreground">

@@ -11,7 +11,7 @@ import {
   Badge,
   ToastId,
 } from '@chakra-ui/react'
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import { FiCheck, FiX, FiInfo, FiCpu } from 'react-icons/fi'
 
 interface AINotification {

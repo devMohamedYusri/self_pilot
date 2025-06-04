@@ -13,17 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { format } from 'date-fns'
-
-interface Task {
-  id: string
-  title: string
-  description?: string
-  completed: boolean
-  dueDate?: string
-  priority?: string
-  aiSuggested: boolean
-  aiApproved?: boolean
-}
+import type { Task } from '@/app/types'
 
 interface TaskListProps {
   tasks: Task[]

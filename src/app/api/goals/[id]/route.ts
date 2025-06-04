@@ -6,7 +6,7 @@ import { prisma } from '@/app/lib/prisma'
 
 // GET /api/goals/[id] - Get a specific goal
 export async function GET(
-  req: Request,
+  _req: Request, // Fixed: Added underscore to indicate intentionally unused parameter
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions)
@@ -35,7 +35,8 @@ export async function GET(
     }
 
     return NextResponse.json(goal)
-  } catch (error) {
+  } catch (error) { // Fixed: Now using the error variable
+    console.error('Error fetching goal:', error) // Fixed: Added error logging
     return NextResponse.json({ error: 'Failed to fetch goal' }, { status: 500 })
   }
 }
@@ -95,7 +96,8 @@ export async function PUT(
     }
 
     return NextResponse.json(goal)
-  } catch (error) {
+  } catch (error) { // Fixed: Now using the error variable
+    console.error('Error updating goal:', error) // Fixed: Added error logging
     return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 })
   }
 }
@@ -150,14 +152,15 @@ export async function PATCH(
     })
 
     return NextResponse.json(goal)
-  } catch (error) {
+  } catch (error) { // Fixed: Now using the error variable
+    console.error('Error updating goal:', error) // Fixed: Added error logging
     return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 })
   }
 }
 
 // DELETE /api/goals/[id] - Delete a specific goal
 export async function DELETE(
-  req: Request,
+  _req: Request, // Fixed: Added underscore to indicate intentionally unused parameter
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions)
@@ -202,7 +205,8 @@ export async function DELETE(
     })
 
     return NextResponse.json({ success: true, message: 'Goal deleted successfully' })
-  } catch (error) {
+  } catch (error) { // Fixed: Now using the error variable
+    console.error('Error deleting goal:', error) // Fixed: Added error logging
     return NextResponse.json({ error: 'Failed to delete goal' }, { status: 500 })
   }
 }

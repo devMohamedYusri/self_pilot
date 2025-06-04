@@ -1,14 +1,16 @@
+// app/hooks/useAINotificationListener.ts
 import { useEffect } from 'react'
 import { useAINotifications } from '@/app/components/notifications/AINotificationSystem'
 import { aiNotificationManager } from '@/app/lib/notifications/AINotificationManager'
 import { useRouter } from 'next/navigation'
+import type { AINotificationData } from '@/app/types'
 
 export function useAINotificationListener() {
   const { showAISuggestion, showAIAction, showAIInsight } = useAINotifications()
   const router = useRouter()
 
   useEffect(() => {
-    const handleNotification = (event: any) => {
+    const handleNotification = (event: AINotificationData) => {
       switch (event.type) {
         case 'task_suggestion':
           showAISuggestion({
@@ -17,7 +19,7 @@ export function useAINotificationListener() {
             title: 'New Task Suggestion',
             message: event.data.message,
             actionType: 'task',
-            actionData: event.data.task,
+            actionData: { task: { ...event.data.task, dueDate: event.data.task?.dueDate ? new Date(event.data.task.dueDate) : undefined } },
             onApprove: async () => {
               await fetch('/api/ai/suggestions/approve', {
                 method: 'POST',

@@ -47,9 +47,10 @@ export default function SignUp() {
         throw new Error('Signup failed')
       }
     } catch (error) {
+      console.error("signup error", error)
       toast({
         title: 'Error',
-        description: 'Failed to create account',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred',
         status: 'error',
       })
     }

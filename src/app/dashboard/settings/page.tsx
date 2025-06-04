@@ -129,7 +129,8 @@ export default function SettingsPage() {
           duration: 3000,
         })
       }
-    } catch (error) {
+    } catch (error) { // Fixed: Now using the error variable
+      console.error('Failed to save AI settings:', error) // Fixed: Added error logging
       toast({
         title: 'Error',
         description: 'Failed to save settings',
@@ -327,7 +328,7 @@ export default function SettingsPage() {
                         <FormLabel>AI Personality</FormLabel>
                         <Select
                           value={settings.personalityMode}
-                          onChange={(e) => setSettings({ ...settings, personalityMode: e.target.value as any })}
+                          onChange={(e) => setSettings({ ...settings, personalityMode: e.target.value as 'professional' | 'friendly' | 'motivational' | 'minimal' })}
                         >
                           <option value="professional">Professional</option>
                           <option value="friendly">Friendly</option>
