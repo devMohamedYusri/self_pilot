@@ -4,9 +4,15 @@ import { authOptions } from '@/app/lib/auth'
 import { prisma } from '@/app/lib/prisma'
 import { Prisma } from '@prisma/client'
 
+interface RouteParams {
+  params: {
+    id: string
+  }
+}
+
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) {
@@ -111,36 +117,6 @@ export async function POST(
     })
 
     return NextResponse.json({ success: true, type: 'habit' })
-  }
-
-  // Check routines
-  const routine = await prisma.routine.findFirst({
-    where: {
-      id: params.id,
-      userId: user.id,
-      aiSuggested: true
-    }
-  })
-
-  if (routine) {
-    await prisma.routine.update({
-      where: { id: params.id },
-      data: { aiApproved: true }
-    })
-
-    const logDetails: Prisma.JsonObject = { approved: true }
-    await prisma.aILog.create({
-      data: {
-        action: 'approve',
-        entityType: 'routine',
-        entityId: params.id,
-        details: logDetails,
-        approved: true,
-        userId: user.id
-      }
-    })
-
-    return NextResponse.json({ success: true, type: 'routine' })
   }
 
   return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 })
