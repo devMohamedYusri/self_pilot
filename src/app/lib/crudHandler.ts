@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/lib/auth'
 import { prisma } from '@/app/lib/prisma'
 import type { Prisma } from '@prisma/client'
-import type { Task, Goal, Habit, Journal, User } from '@/app/types'
+import type { Task, Goal, Habit, Journal } from '@/app/types'
 
 // Define the models that support CRUD operations
 type CrudModel = 'task' | 'goal' | 'habit' | 'journal'
