@@ -3,8 +3,9 @@
 import { useSearchParams } from 'next/navigation'
 import { Box, Heading, Text, Button, VStack } from '@chakra-ui/react'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
-export default function AuthError() {
+function AuthErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -29,5 +30,13 @@ export default function AuthError() {
         </Link>
       </VStack>
     </Box>
+  )
+}
+
+export default function AuthError() {
+  return (
+    <Suspense fallback={<Box>Loading...</Box>}>
+      <AuthErrorContent />
+    </Suspense>
   )
 }
