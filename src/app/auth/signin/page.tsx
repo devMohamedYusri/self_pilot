@@ -19,8 +19,9 @@ import {
   Text,
 } from '@chakra-ui/react'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
-export default function SignIn() {
+function SignInContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const toast = useToast()
@@ -55,8 +56,8 @@ export default function SignIn() {
         router.push('/dashboard')
         router.refresh()
       }
-    } catch (error) { // Fixed: Now using the error variable
-      console.error('Login error:', error) // Fixed: Added error logging
+    } catch (error) {
+      console.error('Login error:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -116,12 +117,20 @@ export default function SignIn() {
         </form>
 
         <Text>
-          Don&apos;t have an account?{' '}
+          Don't have an account?{' '}
           <Link href="/auth/signup">
             <ChakraLink color="brand.500">Sign up</ChakraLink>
           </Link>
         </Text>
       </VStack>
     </Box>
+  )
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<Box>Loading...</Box>}>
+      <SignInContent />
+    </Suspense>
   )
 }
