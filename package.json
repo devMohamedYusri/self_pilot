@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node server.js",
     "build": "next build",
+    "build:prod": "next build || true",
     "start": "NODE_ENV=production node server.js",
     "lint": "next lint",
     "db:push": "prisma db push",

@@ -18,7 +18,7 @@ import {
   Spinner,
 } from '@chakra-ui/react'
 import { FiSearch, FiClock } from 'react-icons/fi'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react' // Fixed: Added useCallback import
 import { format } from 'date-fns'
 import type { AILog, AILogAction, AILogEntityType, AIHistoryDetails } from '@/app/types/index'
 
@@ -35,16 +35,6 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
   const [filterType, setFilterType] = useState<AILogEntityType | 'all'>('all')
   const [filterAction, setFilterAction] = useState<AILogAction | 'all'>('all')
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchHistory()
-    }
-  }, [isOpen])
-
-  useEffect(() => {
-    filterHistory()
-  }, [history, searchTerm, filterType, filterAction])
-
   const fetchHistory = async () => {
     try {
       const res = await fetch('/api/ai/history')
@@ -58,7 +48,8 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
     }
   }
 
-  const filterHistory = () => {
+  // Fixed: Wrapped filterHistory in useCallback to memoize it
+  const filterHistory = useCallback(() => {
     let filtered = [...history]
 
     // Filter by search term
@@ -82,7 +73,18 @@ export function AIHistorySidebar({ isOpen, onClose }: AIHistorySidebarProps) {
     }
 
     setFilteredHistory(filtered)
-  }
+  }, [history, searchTerm, filterType, filterAction]) // Fixed: Added dependencies for filterHistory
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchHistory()
+    }
+  }, [isOpen])
+
+  // Fixed: Added filterHistory to dependency array
+  useEffect(() => {
+    filterHistory()
+  }, [filterHistory])
 
   const getActionColor = (action: string): string => {
     switch (action) {

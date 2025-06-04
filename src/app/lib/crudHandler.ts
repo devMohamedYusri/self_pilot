@@ -39,16 +39,35 @@ interface BaseEntity {
   createdAt: Date
 }
 
-// Prisma delegate type
-type PrismaDelegate<T extends CrudModel> = T extends 'task' 
-  ? Prisma.TaskDelegate
-  : T extends 'goal'
-  ? Prisma.GoalDelegate
-  : T extends 'habit'
-  ? Prisma.HabitDelegate
-  : T extends 'journal'
-  ? Prisma.JournalDelegate
-  : never
+// Define Prisma model methods interface
+interface PrismaModelMethods<T, CreateInput, UpdateInput> {
+  findMany: (args?: {
+    where?: Record<string, unknown>
+    include?: Record<string, boolean>
+    orderBy?: Record<string, 'asc' | 'desc'>
+  }) => Promise<T[]>
+  
+  create: (args: {
+    data: CreateInput
+  }) => Promise<T>
+  
+  update: (args: {
+    where: { id: string; userId?: string }
+    data: UpdateInput
+  }) => Promise<T>
+  
+  delete: (args: {
+    where: { id: string; userId?: string }
+  }) => Promise<T>
+}
+
+// Type for getting the correct Prisma model
+type GetPrismaModel<T extends CrudModel> = 
+  T extends 'task' ? PrismaModelMethods<Task, Prisma.TaskCreateInput, Prisma.TaskUpdateInput> :
+  T extends 'goal' ? PrismaModelMethods<Goal, Prisma.GoalCreateInput, Prisma.GoalUpdateInput> :
+  T extends 'habit' ? PrismaModelMethods<Habit, Prisma.HabitCreateInput, Prisma.HabitUpdateInput> :
+  T extends 'journal' ? PrismaModelMethods<Journal, Prisma.JournalCreateInput, Prisma.JournalUpdateInput> :
+  never
 
 interface CrudHandlerOptions<T extends CrudModel> {
   model: T
@@ -59,7 +78,7 @@ export function createCrudHandlers<T extends CrudModel>({
   model, 
   includeRelations = [] 
 }: CrudHandlerOptions<T>) {
-  const modelClient = prisma[model] as unknown as PrismaDelegate<T>
+  const modelClient = prisma[model] as unknown as GetPrismaModel<T>
 
   const getAll = async () => {
     const session = await getServerSession(authOptions)
@@ -80,7 +99,7 @@ export function createCrudHandlers<T extends CrudModel>({
       {}
     )
 
-    const items = await (modelClient as any).findMany({
+    const items = await modelClient.findMany({
       where: { userId: user.id },
       include: includeObj,
       orderBy: { createdAt: 'desc' }
@@ -105,11 +124,11 @@ export function createCrudHandlers<T extends CrudModel>({
 
     const body = await req.json() as Partial<CreateInputMap[T]> & { aiSuggested?: boolean }
     
-    const item = await (modelClient as any).create({
+    const item = await modelClient.create({
       data: {
         ...body,
         userId: user.id,
-      }
+      } as Prisma.Args<typeof modelClient, 'create'>['data']
     }) as EntityMap[T]
 
     if (body.aiSuggested) {
@@ -143,12 +162,12 @@ export function createCrudHandlers<T extends CrudModel>({
 
     const body = await req.json() as Partial<UpdateInputMap[T]>
     
-    const item = await (modelClient as any).update({
+    const item = await modelClient.update({
       where: { 
         id,
         userId: user.id 
       },
-      data: body,
+      data: body as UpdateInputMap[T],
     }) as EntityMap[T]
 
     await prisma.aILog.create({
@@ -178,7 +197,7 @@ export function createCrudHandlers<T extends CrudModel>({
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    await (modelClient as any).delete({
+    await modelClient.delete({
       where: { 
         id,
         userId: user.id 

@@ -10,7 +10,6 @@ import type {
   AISocketEvent,
   AINotificationData,
   SocketEventHandler,
-  AINotification
 } from '@/app/types'
 
 interface SocketContextType {

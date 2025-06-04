@@ -11,7 +11,7 @@ import {
   useToast,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { useForm, FieldValues, Path, FieldErrors } from 'react-hook-form'
+import { useForm, Path } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { FormField } from '@/app/types'
@@ -21,7 +21,7 @@ export type FormFieldType = 'text' | 'textarea' | 'email' | 'password' | 'number
 
 // Generic form field interface
 // Enhanced form props with proper generics
-interface EnhancedFormProps<TSchema extends z.ZodType<any, any, any>> {
+interface EnhancedFormProps<TSchema extends z.ZodSchema> {
   schema: TSchema
   onSubmit: (data: z.infer<TSchema>) => Promise<void>
   fields: Array<FormField<z.infer<TSchema>>>
@@ -29,7 +29,7 @@ interface EnhancedFormProps<TSchema extends z.ZodType<any, any, any>> {
   onSuccess?: () => void
 }
 
-export function EnhancedForm<TSchema extends z.ZodType<any, any, any>>({
+export function EnhancedForm<TSchema extends z.ZodSchema>({
   schema,
   onSubmit,
   fields,

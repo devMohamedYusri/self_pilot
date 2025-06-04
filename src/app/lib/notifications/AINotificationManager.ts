@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events'
-import type { AINotificationData } from '@/app/types'
 
 // Extended metadata interface
 export interface NotificationMetadata {

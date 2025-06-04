@@ -67,12 +67,21 @@ export interface Journal {
   aiAnalysis?: string | null
 }
 
+// Define possible detail types for AILog
+export type AILogDetails = 
+  | TaskFormData
+  | GoalFormData
+  | HabitFormData
+  | JournalFormData
+  | { message: string; [key: string]: unknown }
+  | { [key: string]: unknown }
+
 export interface AILog {
   id: string
   action: string
   entityType: string
   entityId?: string | null
-  details: any // This is a Json field in Prisma
+  details: AILogDetails // Fixed: Replaced any with proper type
   approved?: boolean | null
   createdAt: Date
   userId: string
@@ -209,13 +218,22 @@ interface CompletionData extends BaseNotificationData {
   completedCount?: number
 }
 
+// Goal suggestion data type
+export interface GoalSuggestionData extends BaseNotificationData {
+  goal: {
+    title: string
+    description?: string
+    targetDate?: Date | string
+  }
+}
+
 export type AINotificationData = 
   | { type: 'task_suggestion'; data: TaskSuggestionData }
   | { type: 'habit_reminder'; data: HabitReminderData }
   | { type: 'insight'; data: InsightData }
   | { type: 'completion'; data: CompletionData }
   | { type: 'goal_reminder'; data: BaseNotificationData }
-  | { type: 'goal_suggestion'; data: GoalSuggestionData }  // Add this line
+  | { type: 'goal_suggestion'; data: GoalSuggestionData }
   | { type: 'achievement'; data: BaseNotificationData }
 
 export interface AINotificationEvent {
@@ -229,12 +247,43 @@ export interface AINotificationMetadata {
   timestamp?: Date
 }
 
-export interface AINotification {
-  type: AINotificationType
-  data: any // Using any since this refers to the discriminated union above
-  metadata: AINotificationMetadata
-}
-
+// Fixed: Properly typed AINotification with discriminated union
+export type AINotification = 
+| {
+    type: 'task_suggestion'
+    data: TaskSuggestionData
+    metadata: AINotificationMetadata
+  }
+| {
+    type: 'habit_reminder'
+    data: HabitReminderData
+    metadata: AINotificationMetadata
+  }
+| {
+    type: 'insight'
+    data: InsightData
+    metadata: AINotificationMetadata
+  }
+| {
+    type: 'completion'
+    data: CompletionData
+    metadata: AINotificationMetadata
+  }
+| {
+    type: 'goal_reminder'
+    data: BaseNotificationData
+    metadata: AINotificationMetadata
+  }
+| {
+    type: 'goal_suggestion'
+    data: GoalSuggestionData
+    metadata: AINotificationMetadata
+  }
+| {
+    type: 'achievement'
+    data: BaseNotificationData
+    metadata: AINotificationMetadata
+  }
 export interface AINotificationMethods {
   showAISuggestion: (params: {
     id: string
@@ -332,7 +381,8 @@ export interface OnboardingApiResponse {
 
 // ===== FORM TYPES =====
 
-export interface FormField<T extends Record<string, any> = Record<string, any>> {
+// Fixed: Replaced any with unknown for more type safety
+export interface FormField<T extends Record<string, unknown> = Record<string, unknown>> {
   name: keyof T & string
   label: string
   type: FormFieldType
@@ -340,7 +390,8 @@ export interface FormField<T extends Record<string, any> = Record<string, any>> 
   required?: boolean
 }
 
-export type FormData = Record<string, any>
+// Fixed: Replaced any with unknown for type safety
+export type FormData = Record<string, unknown>
 
 // ===== UTILITY TYPES =====
 
@@ -350,13 +401,13 @@ export type UpdateTaskInput = Partial<CreateTaskInput>
 export type CreateGoalInput = Omit<Goal, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'completed'>
 export type UpdateGoalInput = Partial<CreateGoalInput>
 
+// ... continuing from where it was cut off
+
 export type CreateHabitInput = Omit<Habit, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'streak' | 'aiSuggested' | 'aiApproved'>
 export type UpdateHabitInput = Partial<CreateHabitInput>
 
 export type CreateJournalInput = Omit<Journal, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'aiAnalysis'>
 export type UpdateJournalInput = Partial<CreateJournalInput>
-
-
 
 // AI Provider types
 export interface AIProvider {
@@ -421,15 +472,9 @@ export interface AIPropertySchema {
   default?: unknown
 }
 
+// Fixed: Replaced any with proper typed parameters
+export type SocketEventHandler<T = unknown> = (data: T) => void | Promise<void>
 
-// Goal suggestion data type (if not already present as goal_reminder)
-export interface GoalSuggestionData extends BaseNotificationData {
-  goal: {
-    title: string
-    description?: string
-    targetDate?: Date | string
-  }
-}
-
-
-export type SocketEventHandler = (...args: any[]) => void
+// Additional type for specific socket event handlers
+export type TypedSocketEventHandler<K extends keyof SocketEventMap> = 
+  SocketEventHandler<SocketEventMap[K]>
